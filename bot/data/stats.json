@@ -1,0 +1,42 @@
+{
+  "874457639": {
+    "user_id": 874457639,
+    "total_sleep_minutes": 7190,
+    "feed_events": 11,
+    "water_events": 11,
+    "work_sessions": 8,
+    "hobby_sessions": 7
+  },
+  "410701449": {
+    "user_id": 410701449,
+    "total_sleep_minutes": 0,
+    "feed_events": 0,
+    "water_events": 1,
+    "work_sessions": 0,
+    "hobby_sessions": 0
+  },
+  "1924730605": {
+    "user_id": 1924730605,
+    "total_sleep_minutes": 121,
+    "feed_events": 3,
+    "water_events": 4,
+    "work_sessions": 1,
+    "hobby_sessions": 0
+  },
+  "1164274571": {
+    "user_id": 1164274571,
+    "total_sleep_minutes": 96,
+    "feed_events": 5,
+    "water_events": 5,
+    "work_sessions": 1,
+    "hobby_sessions": 2
+  },
+  "1497602997": {
+    "user_id": 1497602997,
+    "total_sleep_minutes": 815,
+    "feed_events": 5,
+    "water_events": 5,
+    "work_sessions": 0,
+    "hobby_sessions": 0
+  }
+}

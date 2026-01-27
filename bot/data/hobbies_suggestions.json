@@ -1,0 +1,162 @@
+{
+  "sports": {
+    "running": {
+      "id": "running",
+      "title": "Бег",
+      "price": 20,
+      "avatar_key": "hobby",
+      "description": "Выдра занимается бегом на свежем воздухе"
+    },
+    "swimming": {
+      "id": "swimming",
+      "title": "Плавание",
+      "price": 25,
+      "avatar_key": "hobby",
+      "description": "Выдра плавает в бассейне"
+    },
+    "yoga": {
+      "id": "yoga",
+      "title": "Йога",
+      "price": 30,
+      "avatar_key": "hobby",
+      "description": "Выдра занимается йогой для расслабления"
+    },
+    "cycling": {
+      "id": "cycling",
+      "title": "Велоспорт",
+      "price": 35,
+      "avatar_key": "hobby",
+      "description": "Выдра катается на велосипеде"
+    },
+    "gym": {
+      "id": "gym",
+      "title": "Спортзал",
+      "price": 40,
+      "avatar_key": "hobby",
+      "description": "Выдра тренируется в спортзале"
+    },
+    "tennis": {
+      "id": "tennis",
+      "title": "Теннис",
+      "price": 45,
+      "avatar_key": "hobby",
+      "description": "Выдра играет в теннис"
+    },
+    "volleyball": {
+      "id": "volleyball",
+      "title": "Волейбол",
+      "price": 30,
+      "avatar_key": "hobby",
+      "description": "Выдра играет в волейбол"
+    },
+    "basketball": {
+      "id": "basketball",
+      "title": "Баскетбол",
+      "price": 35,
+      "avatar_key": "hobby",
+      "description": "Выдра играет в баскетбол"
+    },
+    "football": {
+      "id": "football",
+      "title": "Футбол",
+      "price": 35,
+      "avatar_key": "hobby",
+      "description": "Выдра играет в футбол"
+    },
+    "badminton": {
+      "id": "badminton",
+      "title": "Бадминтон",
+      "price": 30,
+      "avatar_key": "hobby",
+      "description": "Выдра играет в бадминтон"
+    }
+  },
+  "creativity": {
+    "drawing": {
+      "id": "drawing",
+      "title": "Рисование",
+      "price": 20,
+      "avatar_key": "hobby",
+      "description": "Выдра рисует картины"
+    },
+    "music": {
+      "id": "music",
+      "title": "Музыка",
+      "price": 30,
+      "avatar_key": "hobby",
+      "description": "Выдра играет на музыкальном инструменте"
+    },
+    "photography": {
+      "id": "photography",
+      "title": "Фотография",
+      "price": 35,
+      "avatar_key": "hobby",
+      "description": "Выдра занимается фотографией"
+    },
+    "writing": {
+      "id": "writing",
+      "title": "Писательство",
+      "price": 25,
+      "avatar_key": "hobby",
+      "description": "Выдра пишет рассказы"
+    },
+    "handicraft": {
+      "id": "handicraft",
+      "title": "Рукоделие",
+      "price": 30,
+      "avatar_key": "hobby",
+      "description": "Выдра занимается рукоделием"
+    },
+    "cooking": {
+      "id": "cooking",
+      "title": "Кулинария",
+      "price": 35,
+      "avatar_key": "hobby",
+      "description": "Выдра готовит вкусные блюда"
+    }
+  },
+  "entertainment": {
+    "cinema": {
+      "id": "cinema",
+      "title": "Кино",
+      "price": 30,
+      "avatar_key": "hobby",
+      "description": "Выдра ходит в кинотеатр"
+    },
+    "theater": {
+      "id": "theater",
+      "title": "Театр",
+      "price": 40,
+      "avatar_key": "hobby",
+      "description": "Выдра посещает театральные постановки"
+    },
+    "museum": {
+      "id": "museum",
+      "title": "Музей",
+      "price": 25,
+      "avatar_key": "hobby",
+      "description": "Выдра ходит в музей"
+    },
+    "concert": {
+      "id": "concert",
+      "title": "Концерт",
+      "price": 45,
+      "avatar_key": "hobby",
+      "description": "Выдра посещает концерты"
+    },
+    "exhibition": {
+      "id": "exhibition",
+      "title": "Выставка",
+      "price": 30,
+      "avatar_key": "hobby",
+      "description": "Выдра ходит на выставки"
+    },
+    "opera": {
+      "id": "opera",
+      "title": "Опера",
+      "price": 50,
+      "avatar_key": "hobby",
+      "description": "Выдра посещает оперные постановки"
+    }
+  }
+}

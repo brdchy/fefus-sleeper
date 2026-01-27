@@ -1,0 +1,399 @@
+{
+  "874457639": {
+    "user_id": 874457639,
+    "pet": {
+      "name": "Муся",
+      "avatar_key": "awake",
+      "happiness": 63,
+      "energy": 25,
+      "hunger": 57,
+      "thirst": 72,
+      "age_days": 10,
+      "is_alive": true,
+      "free_revives_left": 0,
+      "last_sleep_start": null,
+      "last_wake_time": "2026-01-25T01:51:42.201559+00:00",
+      "unlocked_hobbies": [
+        "tennis",
+        "cooking",
+        "opera"
+      ],
+      "hobby_sessions": null,
+      "hobby_mastery": {},
+      "money": 16,
+      "at_work": false,
+      "last_work_start": null,
+      "last_interaction": "2026-01-25T03:01:08.906928+00:00",
+      "fatigue": 0,
+      "unlocked_achievements": [],
+      "critical_state_since": null,
+      "vacation_mode": false
+    },
+    "settings": {
+      "timezone": "Asia/Vladivostok",
+      "pet_name": null,
+      "water_norm_liters": 2.5,
+      "glass_volume_ml": 300,
+      "water_norm_set": false
+    },
+    "last_reminders": {
+      "age_update": "2026-01-25",
+      "evening": "2026-01-24",
+      "water_afternoon": "2026-01-25",
+      "sleep": "2026-01-24",
+      "lunch": "2026-01-25",
+      "work_limit_reached": "2026-01-23T12:36:07.556449+10:00",
+      "health_warning": "2026-01-25T12:17:22.811135+10:00"
+    },
+    "work_hours_by_date": {
+      "2026-01-24": 1.8371877638888887,
+      "2026-01-25": 8.440772043333332
+    },
+    "daily_stats": {
+      "2026-01-24": {
+        "date": "2026-01-24",
+        "sleep_minutes": 0,
+        "water_liters": 1.2,
+        "wake_time": null,
+        "sleep_time": null,
+        "pet_sleep_minutes": 0,
+        "pet_water_glasses": 4
+      }
+    },
+    "advice_state": {
+      "last_advice_date": "2026-01-24",
+      "shown_advice_ids": [
+        "activity_2"
+      ],
+      "week_start_date": "2026-01-19",
+      "monthly_advice_summary": {
+        "activity": [
+          "Растяжка утром поможет разбудить тело и улучшить гибкость."
+        ]
+      },
+      "first_advice_date": "2026-01-24",
+      "weekly_answers": {}
+    },
+    "last_main_menu_return": "2026-01-25T03:01:28.802895+00:00",
+    "active_quests": {},
+    "work_stats": {},
+    "last_fatigue_update": null
+  },
+  "410701449": {
+    "user_id": 410701449,
+    "pet": {
+      "name": "Феня",
+      "avatar_key": "awake",
+      "happiness": 53,
+      "energy": 50,
+      "hunger": 50,
+      "thirst": 75,
+      "age_days": 9,
+      "is_alive": true,
+      "free_revives_left": 1,
+      "last_sleep_start": null,
+      "last_wake_time": null,
+      "unlocked_hobbies": [],
+      "hobby_sessions": null,
+      "hobby_mastery": {},
+      "money": 0,
+      "at_work": false,
+      "last_work_start": null,
+      "last_interaction": "2026-01-10T10:44:28.952224+00:00",
+      "fatigue": 0,
+      "unlocked_achievements": [],
+      "critical_state_since": null,
+      "vacation_mode": false
+    },
+    "settings": {
+      "timezone": "Asia/Vladivostok",
+      "pet_name": null,
+      "water_norm_liters": 2.5,
+      "glass_volume_ml": 300,
+      "water_norm_set": false
+    },
+    "last_reminders": {
+      "age_update": "2026-01-25",
+      "water_afternoon": "2026-01-25",
+      "sleep": "2026-01-24",
+      "lunch": "2026-01-25",
+      "evening": "2026-01-24"
+    },
+    "work_hours_by_date": {},
+    "daily_stats": {},
+    "advice_state": {
+      "last_advice_date": null,
+      "shown_advice_ids": [],
+      "week_start_date": null,
+      "monthly_advice_summary": {},
+      "first_advice_date": null,
+      "weekly_answers": {}
+    },
+    "last_main_menu_return": null,
+    "active_quests": {},
+    "work_stats": {},
+    "last_fatigue_update": null
+  },
+  "1497602997": {
+    "user_id": 1497602997,
+    "pet": {
+      "name": "Илюлюна",
+      "avatar_key": "sleep",
+      "happiness": 29,
+      "energy": 23,
+      "hunger": 90,
+      "thirst": 90,
+      "age_days": 4,
+      "is_alive": true,
+      "free_revives_left": 1,
+      "last_sleep_start": "2026-01-24T12:23:53.580786+00:00",
+      "last_wake_time": "2026-01-24T01:37:15.310370+00:00",
+      "unlocked_hobbies": [],
+      "hobby_sessions": null,
+      "hobby_mastery": {},
+      "money": 0,
+      "at_work": false,
+      "last_work_start": null,
+      "last_interaction": "2026-01-24T15:03:21.909242+00:00",
+      "fatigue": 0,
+      "unlocked_achievements": [],
+      "critical_state_since": null,
+      "vacation_mode": false
+    },
+    "settings": {
+      "timezone": "Asia/Vladivostok",
+      "pet_name": null,
+      "water_norm_liters": 2.5,
+      "glass_volume_ml": 300,
+      "water_norm_set": false
+    },
+    "last_reminders": {
+      "age_update": "2026-01-25",
+      "lunch": "2026-01-25",
+      "sleep": "2026-01-24",
+      "water_afternoon": "2026-01-25",
+      "evening": "2026-01-24",
+      "health_warning": "2026-01-25T00:25:35.083716+10:00"
+    },
+    "work_hours_by_date": {},
+    "daily_stats": {},
+    "advice_state": {
+      "last_advice_date": null,
+      "shown_advice_ids": [],
+      "week_start_date": null,
+      "monthly_advice_summary": {},
+      "first_advice_date": null,
+      "weekly_answers": {}
+    },
+    "last_main_menu_return": "2026-01-24T15:03:19.735780+00:00",
+    "active_quests": {},
+    "work_stats": {},
+    "last_fatigue_update": null
+  },
+  "1924730605": {
+    "user_id": 1924730605,
+    "pet": {
+      "name": "Фуфел",
+      "avatar_key": "awake",
+      "happiness": 35,
+      "energy": 62,
+      "hunger": 41,
+      "thirst": 36,
+      "age_days": 3,
+      "is_alive": true,
+      "free_revives_left": 1,
+      "last_sleep_start": null,
+      "last_wake_time": null,
+      "unlocked_hobbies": [],
+      "hobby_sessions": null,
+      "hobby_mastery": {},
+      "money": 50,
+      "at_work": false,
+      "last_work_start": null,
+      "last_interaction": "2026-01-24T08:24:28.771746+00:00",
+      "fatigue": 0,
+      "unlocked_achievements": [],
+      "critical_state_since": null,
+      "vacation_mode": false
+    },
+    "settings": {
+      "timezone": "Asia/Vladivostok",
+      "pet_name": "Фуфел",
+      "water_norm_liters": 2.5,
+      "glass_volume_ml": 300,
+      "water_norm_set": false
+    },
+    "last_reminders": {
+      "age_update": "2026-01-25",
+      "lunch": "2026-01-25",
+      "sleep": "2026-01-24",
+      "work_limit_reached": "2026-01-24T18:00:12.811790+10:00",
+      "water_afternoon": "2026-01-25",
+      "health_warning": "2026-01-24T18:14:14.936734+10:00",
+      "evening": "2026-01-24"
+    },
+    "work_hours_by_date": {
+      "2026-01-24": 10.0
+    },
+    "daily_stats": {
+      "2026-01-23": {
+        "date": "2026-01-23",
+        "sleep_minutes": 0,
+        "water_liters": 0.0,
+        "wake_time": null,
+        "sleep_time": "2026-01-23T12:04:31.718921+00:00",
+        "pet_sleep_minutes": 0,
+        "pet_water_glasses": 0
+      },
+      "2026-01-24": {
+        "date": "2026-01-24",
+        "sleep_minutes": 121,
+        "water_liters": 0.6,
+        "wake_time": "2026-01-24T07:10:25.777272+00:00",
+        "sleep_time": "2026-01-24T05:08:57.595708+00:00",
+        "pet_sleep_minutes": 121,
+        "pet_water_glasses": 2
+      }
+    },
+    "advice_state": {
+      "last_advice_date": "2026-01-24",
+      "shown_advice_ids": [
+        "water_4"
+      ],
+      "week_start_date": "2026-01-19",
+      "monthly_advice_summary": {
+        "water": [
+          "В жаркую погоду или при физической активности увеличь норму воды."
+        ]
+      },
+      "first_advice_date": "2026-01-24",
+      "weekly_answers": {}
+    },
+    "last_main_menu_return": "2026-01-24T08:23:23.567219+00:00",
+    "active_quests": {},
+    "work_stats": {},
+    "last_fatigue_update": null
+  },
+  "1164274571": {
+    "user_id": 1164274571,
+    "pet": {
+      "name": "Фраер",
+      "avatar_key": "hobby",
+      "happiness": 66,
+      "energy": 8,
+      "hunger": 38,
+      "thirst": 38,
+      "age_days": 3,
+      "is_alive": true,
+      "free_revives_left": 1,
+      "last_sleep_start": null,
+      "last_wake_time": "2026-01-25T03:10:06.493189+00:00",
+      "unlocked_hobbies": [
+        "yoga"
+      ],
+      "hobby_sessions": null,
+      "hobby_mastery": {},
+      "money": 16,
+      "at_work": false,
+      "last_work_start": null,
+      "last_interaction": "2026-01-25T03:10:34.183938+00:00",
+      "fatigue": 0,
+      "unlocked_achievements": [],
+      "critical_state_since": null,
+      "vacation_mode": false
+    },
+    "settings": {
+      "timezone": "Asia/Vladivostok",
+      "pet_name": null,
+      "water_norm_liters": 2.5,
+      "glass_volume_ml": 300,
+      "water_norm_set": false
+    },
+    "last_reminders": {
+      "age_update": "2026-01-25",
+      "lunch": "2026-01-25",
+      "sleep": "2026-01-24",
+      "water_afternoon": "2026-01-25",
+      "evening": "2026-01-24",
+      "health_warning": "2026-01-25T14:37:05.325214+10:00"
+    },
+    "work_hours_by_date": {
+      "2026-01-23": 9.20118398
+    },
+    "daily_stats": {
+      "2026-01-25": {
+        "date": "2026-01-25",
+        "sleep_minutes": 0,
+        "water_liters": 0.0,
+        "wake_time": null,
+        "sleep_time": "2026-01-25T01:32:56.236575+00:00",
+        "pet_sleep_minutes": 0,
+        "pet_water_glasses": 0
+      }
+    },
+    "advice_state": {
+      "last_advice_date": null,
+      "shown_advice_ids": [],
+      "week_start_date": null,
+      "monthly_advice_summary": {},
+      "first_advice_date": null,
+      "weekly_answers": {}
+    },
+    "last_main_menu_return": "2026-01-25T03:10:27.250239+00:00",
+    "active_quests": {},
+    "work_stats": {},
+    "last_fatigue_update": null
+  },
+  "8026382955": {
+    "user_id": 8026382955,
+    "pet": {
+      "name": "Пробник",
+      "avatar_key": "awake",
+      "happiness": 50,
+      "energy": 50,
+      "hunger": 50,
+      "thirst": 50,
+      "age_days": 1,
+      "is_alive": true,
+      "free_revives_left": 1,
+      "last_sleep_start": null,
+      "last_wake_time": null,
+      "unlocked_hobbies": [],
+      "hobby_sessions": null,
+      "hobby_mastery": {},
+      "money": 0,
+      "at_work": false,
+      "last_work_start": null,
+      "last_interaction": null,
+      "fatigue": 0,
+      "unlocked_achievements": [],
+      "critical_state_since": null,
+      "vacation_mode": false
+    },
+    "settings": {
+      "timezone": "Asia/Vladivostok",
+      "pet_name": null,
+      "water_norm_liters": 2.5,
+      "glass_volume_ml": 300,
+      "water_norm_set": false
+    },
+    "last_reminders": {
+      "age_update": "2026-01-25",
+      "lunch": "2026-01-25"
+    },
+    "work_hours_by_date": {},
+    "daily_stats": {},
+    "advice_state": {
+      "last_advice_date": null,
+      "shown_advice_ids": [],
+      "week_start_date": null,
+      "monthly_advice_summary": {},
+      "first_advice_date": null,
+      "weekly_answers": {}
+    },
+    "last_main_menu_return": null,
+    "active_quests": {},
+    "work_stats": {},
+    "last_fatigue_update": null
+  }
+}

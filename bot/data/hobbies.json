@@ -1,0 +1,232 @@
+{
+  "walk": {
+    "id": "walk",
+    "title": "Прогулка по парку",
+    "price": 0,
+    "avatar_key": "hobby",
+    "hobby_type": "walk",
+    "base_happiness": 8,
+    "base_fatigue_recovery": 100,
+    "duration_minutes": 45
+  },
+  "running": {
+    "id": "running",
+    "title": "Бег",
+    "price": 20,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 12,
+    "base_fatigue_recovery": 150,
+    "duration_minutes": 60
+  },
+  "swimming": {
+    "id": "swimming",
+    "title": "Плавание",
+    "price": 25,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 13,
+    "base_fatigue_recovery": 160,
+    "duration_minutes": 70
+  },
+  "volleyball": {
+    "id": "volleyball",
+    "title": "Волейбол",
+    "price": 30,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 15,
+    "base_fatigue_recovery": 180,
+    "duration_minutes": 75
+  },
+  "basketball": {
+    "id": "basketball",
+    "title": "Баскетбол",
+    "price": 35,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 16,
+    "base_fatigue_recovery": 200,
+    "duration_minutes": 80
+  },
+  "yoga": {
+    "id": "yoga",
+    "title": "Йога",
+    "price": 30,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 14,
+    "base_fatigue_recovery": 175,
+    "duration_minutes": 90
+  },
+  "football": {
+    "id": "football",
+    "title": "Футбол",
+    "price": 35,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 16,
+    "base_fatigue_recovery": 200,
+    "duration_minutes": 85
+  },
+  "cycling": {
+    "id": "cycling",
+    "title": "Велоспорт",
+    "price": 35,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 15,
+    "base_fatigue_recovery": 190,
+    "duration_minutes": 80
+  },
+  "gym": {
+    "id": "gym",
+    "title": "Тренажёрный зал",
+    "price": 40,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 17,
+    "base_fatigue_recovery": 220,
+    "duration_minutes": 90
+  },
+  "tennis": {
+    "id": "tennis",
+    "title": "Теннис",
+    "price": 45,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 19,
+    "base_fatigue_recovery": 250,
+    "duration_minutes": 95
+  },
+  "badminton": {
+    "id": "badminton",
+    "title": "Бадминтон",
+    "price": 30,
+    "avatar_key": "hobby",
+    "hobby_type": "sport",
+    "base_happiness": 14,
+    "base_fatigue_recovery": 170,
+    "duration_minutes": 70
+  },
+  "drawing": {
+    "id": "drawing",
+    "title": "Рисование",
+    "price": 20,
+    "avatar_key": "hobby",
+    "hobby_type": "creative",
+    "base_happiness": 10,
+    "base_fatigue_recovery": 100,
+    "duration_minutes": 75
+  },
+  "writing": {
+    "id": "writing",
+    "title": "Писательство",
+    "price": 25,
+    "avatar_key": "hobby",
+    "hobby_type": "creative",
+    "base_happiness": 11,
+    "base_fatigue_recovery": 110,
+    "duration_minutes": 90
+  },
+  "music": {
+    "id": "music",
+    "title": "Музыка",
+    "price": 30,
+    "avatar_key": "hobby",
+    "hobby_type": "creative",
+    "base_happiness": 12,
+    "base_fatigue_recovery": 125,
+    "duration_minutes": 85
+  },
+  "handicraft": {
+    "id": "handicraft",
+    "title": "Рукоделие",
+    "price": 30,
+    "avatar_key": "hobby",
+    "hobby_type": "creative",
+    "base_happiness": 12,
+    "base_fatigue_recovery": 120,
+    "duration_minutes": 80
+  },
+  "photography": {
+    "id": "photography",
+    "title": "Фотография",
+    "price": 35,
+    "avatar_key": "hobby",
+    "hobby_type": "creative",
+    "base_happiness": 13,
+    "base_fatigue_recovery": 135,
+    "duration_minutes": 90
+  },
+  "cooking": {
+    "id": "cooking",
+    "title": "Кулинария",
+    "price": 35,
+    "avatar_key": "hobby",
+    "hobby_type": "creative",
+    "base_happiness": 14,
+    "base_fatigue_recovery": 145,
+    "duration_minutes": 95
+  },
+  "museum": {
+    "id": "museum",
+    "title": "Музей",
+    "price": 25,
+    "avatar_key": "hobby",
+    "hobby_type": "entertainment",
+    "base_happiness": 11,
+    "base_fatigue_recovery": 80,
+    "duration_minutes": 100
+  },
+  "cinema": {
+    "id": "cinema",
+    "title": "Кино",
+    "price": 30,
+    "avatar_key": "hobby",
+    "hobby_type": "entertainment",
+    "base_happiness": 12,
+    "base_fatigue_recovery": 85,
+    "duration_minutes": 120
+  },
+  "exhibition": {
+    "id": "exhibition",
+    "title": "Выставка",
+    "price": 30,
+    "avatar_key": "hobby",
+    "hobby_type": "entertainment",
+    "base_happiness": 12,
+    "base_fatigue_recovery": 85,
+    "duration_minutes": 90
+  },
+  "theater": {
+    "id": "theater",
+    "title": "Театр",
+    "price": 40,
+    "avatar_key": "hobby",
+    "hobby_type": "entertainment",
+    "base_happiness": 15,
+    "base_fatigue_recovery": 100,
+    "duration_minutes": 130
+  },
+  "concert": {
+    "id": "concert",
+    "title": "Концерт",
+    "price": 45,
+    "avatar_key": "hobby",
+    "hobby_type": "entertainment",
+    "base_happiness": 17,
+    "base_fatigue_recovery": 115,
+    "duration_minutes": 120
+  },
+  "opera": {
+    "id": "opera",
+    "title": "Опера",
+    "price": 50,
+    "avatar_key": "hobby",
+    "hobby_type": "entertainment",
+    "base_happiness": 20,
+    "base_fatigue_recovery": 130,
+    "duration_minutes": 150
+  }
+}

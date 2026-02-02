@@ -1,12 +1,13 @@
 import asyncio
-from datetime import datetime, time, date
+from datetime import datetime, time, date, timezone
 from typing import Dict
 
 from aiogram import Bot
 from zoneinfo import ZoneInfo
 
 from bot.core.repositories import UsersRepository
-from bot.core.health import check_critical_warnings, get_health_state, HealthState
+from bot.core.health import get_health_state, HealthState
+from bot.core.menu import main_menu_keyboard
 
 
 REMINDER_TIMES: Dict[str, time] = {
@@ -160,28 +161,22 @@ async def reminders_worker(bot: Bot, users_repo: UsersRepository) -> None:
                     # Игнорируем ошибки при проверке времени работы
                     pass
             
-            # Проверяем критическое состояние и отправляем предупреждения
-            # (не чаще раза в 2 часа)
-            health_warning_key = "health_warning"
-            last_health_warning = last.get(health_warning_key)
-            should_check_health = True
+            # Проверка критического состояния отключена (навязчивые напоминания убраны)
             
-            if last_health_warning:
-                try:
-                    last_warning_dt = datetime.fromisoformat(last_health_warning)
-                    hours_since_warning = (now_dt - last_warning_dt).total_seconds() / 3600.0
-                    if hours_since_warning < 2.0:
-                        should_check_health = False
-                except Exception:
-                    pass
-            
-            if should_check_health and pet.is_alive and not pet.vacation_mode:
-                warnings = check_critical_warnings(pet)
-                if warnings:
+            # Проверяем, не умерла ли выдра, и отправляем уведомление (только один раз)
+            if not pet.is_alive:
+                death_notification_key = "death_notification_sent"
+                if not last.get(death_notification_key):
                     try:
-                        warning_text = "🦦 Выдра нуждается в твоей помощи!\n\n" + "\n".join(warnings)
-                        await bot.send_message(chat_id, warning_text)
-                        last[health_warning_key] = now_dt.isoformat()
+                        await bot.send_message(
+                            chat_id,
+                            f"💀 К сожалению, твоя выдра {pet.name} умерла...\n\n"
+                            f"Она не получила достаточной заботы и ушла в мир иной.\n\n"
+                            f"Но не расстраивайся! Ты можешь попробовать воскресить её командой /revive\n\n"
+                            f"У тебя есть 1 бесплатное воскрешение. После этого воскрешение будет доступно через подписку на канал.",
+                            reply_markup=main_menu_keyboard()
+                        )
+                        last[death_notification_key] = datetime.now(timezone.utc).isoformat()
                         users_repo.save_user(user)
                     except Exception:
                         pass

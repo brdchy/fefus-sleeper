@@ -35,6 +35,7 @@ class UsersRepository:
             water_norm_liters=settings_data.get("water_norm_liters", 2.5),
             glass_volume_ml=settings_data.get("glass_volume_ml", 300),
             water_norm_set=settings_data.get("water_norm_set", False),
+            sleep_norm_hours=settings_data.get("sleep_norm_hours", 0.0),
         )
         
         # Восстанавливаем статистику дней
@@ -46,6 +47,16 @@ class UsersRepository:
         # Восстанавливаем состояние советов
         advice_data = data.get("advice_state", {})
         advice_state = AdviceState(**advice_data) if advice_data else AdviceState()
+        
+        # Восстанавливаем friendships
+        friendships_raw = data.get("friendships", {})
+        friendships = {}
+        for friend_id_str, friendship_data in friendships_raw.items():
+            try:
+                friend_id = int(friend_id_str)
+                friendships[friend_id] = Friendship(**friendship_data)
+            except (ValueError, TypeError, KeyError):
+                continue  # Пропускаем некорректные данные
         
         return UserState(
             user_id=data["user_id"],
@@ -59,6 +70,7 @@ class UsersRepository:
             active_quests=data.get("active_quests", {}),
             work_stats=data.get("work_stats", {}),
             last_fatigue_update=data.get("last_fatigue_update"),
+            friendships=friendships,
         )
 
     def save_user(self, user: UserState) -> None:
@@ -121,6 +133,16 @@ class UsersRepository:
             else:
                 advice_state = AdviceState()
             
+            # Восстанавливаем friendships
+            friendships_raw = data.get("friendships", {})
+            friendships = {}
+            for friend_id_str, friendship_data in friendships_raw.items():
+                try:
+                    friend_id = int(friend_id_str)
+                    friendships[friend_id] = Friendship(**friendship_data)
+                except (ValueError, TypeError, KeyError):
+                    continue  # Пропускаем некорректные данные
+            
             result[uid] = UserState(
                 user_id=data["user_id"],
                 pet=pet,
@@ -133,6 +155,7 @@ class UsersRepository:
                 active_quests=data.get("active_quests", {}),
                 work_stats=data.get("work_stats", {}),
                 last_fatigue_update=data.get("last_fatigue_update"),
+                friendships=friendships,
             )
         return result
 

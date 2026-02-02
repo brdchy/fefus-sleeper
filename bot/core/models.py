@@ -35,6 +35,7 @@ class UserSettings:
     water_norm_liters: float = 2.5  # норма воды в день (литры)
     glass_volume_ml: int = 300  # объем стакана в миллилитрах
     water_norm_set: bool = False  # была ли установлена норма воды
+    sleep_norm_hours: float = 0.0  # норма сна в день (часы), 0 означает не установлена
 
 
 @dataclass
@@ -73,6 +74,7 @@ class UserState:
     active_quests: Dict[str, Dict] = field(default_factory=dict)  # ID квеста -> данные квеста
     work_stats: Dict[str, any] = field(default_factory=dict)  # Статистика работы
     last_fatigue_update: Optional[str] = None  # ISO дата последнего обновления усталости
+    friendships: Dict[int, 'Friendship'] = field(default_factory=dict)  # friend_id -> Friendship
 
 
 @dataclass
@@ -127,7 +129,18 @@ def advice_state_to_dict(advice: AdviceState) -> Dict:
     return asdict(advice)
 
 
+def friendship_to_dict(friendship: Friendship) -> Dict:
+    """Преобразует Friendship в словарь для сохранения"""
+    return asdict(friendship)
+
+
 def user_to_dict(user: UserState) -> Dict:
+    # Преобразуем friendships в словарь
+    friendships_dict = {}
+    if hasattr(user, 'friendships') and user.friendships:
+        for friend_id, friendship in user.friendships.items():
+            friendships_dict[str(friend_id)] = friendship_to_dict(friendship)
+    
     return {
         "user_id": user.user_id,
         "pet": pet_to_dict(user.pet),
@@ -137,6 +150,7 @@ def user_to_dict(user: UserState) -> Dict:
             "water_norm_liters": user.settings.water_norm_liters,
             "glass_volume_ml": user.settings.glass_volume_ml,
             "water_norm_set": user.settings.water_norm_set,
+            "sleep_norm_hours": user.settings.sleep_norm_hours,
         },
         "last_reminders": user.last_reminders,
         "work_hours_by_date": user.work_hours_by_date,
@@ -148,6 +162,7 @@ def user_to_dict(user: UserState) -> Dict:
         "active_quests": user.active_quests,
         "work_stats": user.work_stats,
         "last_fatigue_update": user.last_fatigue_update,
+        "friendships": friendships_dict,
     }
 
 

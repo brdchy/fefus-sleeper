@@ -30,7 +30,6 @@ def actions_menu_keyboard() -> ReplyKeyboardMarkup:
             [KeyboardButton(text="Накормить (ужин)"), KeyboardButton(text="Дать воды")],
             [KeyboardButton(text="Отправить на работу"), KeyboardButton(text="Забрать с работы")],
             [KeyboardButton(text="Хобби / тренировка"), KeyboardButton(text="Купить хобби")],
-            [KeyboardButton(text="Ложусь спать"), KeyboardButton(text="Проснулся")],
             [KeyboardButton(text="Назад в главное меню")],
         ],
         resize_keyboard=True,
@@ -182,15 +181,26 @@ def format_weekly_stats(user: UserState) -> str:
             if has_data:
                 lines.extend(day_lines)
                 days_with_data += 1
+        else:
+            # Показываем дни без данных, чтобы пользователь видел полную картину
+            day_lines = [f"\n📅 {weekday_name}:"]
+            day_lines.append("   📝 Данных нет")
+            lines.extend(day_lines)
     
-    if days_with_data == 0:
-        lines.append("\n📝 Данных за эту неделю пока нет.")
-        lines.append("Начни записывать свой сон и воду через 'Действия с выдрой'!")
-        return "\n".join(lines)
+    # Всегда показываем итоговую статистику, даже если данных нет
+    # if days_with_data == 0:
+    #     lines.append("\n📝 Данных за эту неделю пока нет.")
+    #     lines.append("Начни записывать свой сон и воду через 'Действия с выдрой'!")
+    #     return "\n".join(lines)
     
     # Итоговая статистика
     lines.append("\n" + "="*30)
     lines.append("\n📈 Итоги за неделю:\n")
+    
+    if days_with_data == 0:
+        lines.append("📝 Данных за эту неделю пока нет.")
+        lines.append("Начни записывать свой сон и воду через 'Действия с выдрой'!")
+        return "\n".join(lines)
     
     # Сон
     if total_sleep_minutes > 0:
@@ -202,6 +212,16 @@ def format_weekly_stats(user: UserState) -> str:
             pet_total_hours = total_pet_sleep_minutes / 60
             lines.append(f"   Выдра спала {pet_total_hours:.1f} часов.")
         lines.append(f"   В среднем {avg_hours:.1f} часов в день.")
+        
+        # Показываем сравнение с нормой, если она установлена
+        if user.settings.sleep_norm_hours > 0:
+            norm_per_week = user.settings.sleep_norm_hours * 7
+            lines.append(f"   Норма: {user.settings.sleep_norm_hours:.1f}ч/день ({norm_per_week:.1f}ч/неделю).")
+            if total_hours >= norm_per_week * 0.9:  # 90% от нормы считается выполнением
+                lines.append(f"   ✅ Норма за неделю достигнута!")
+            else:
+                remaining = norm_per_week - total_hours
+                lines.append(f"   ⚠️ Осталось {remaining:.1f}ч до нормы за неделю.")
     
     # Вода
     if total_water_liters > 0:

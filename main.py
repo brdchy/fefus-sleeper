@@ -57,6 +57,14 @@ from bot.core.advice import get_advice_for_today, get_weekly_advice_summary, get
 class FriendshipFSM(StatesGroup):
     waiting_for_friend_code = State()
 
+# FSM для настройки воды
+class WaterSettingsFSM(StatesGroup):
+    waiting_for_glass_volume = State()  # Ожидание ввода объема стакана
+
+# FSM для настройки нормы сна
+class SleepNormFSM(StatesGroup):
+    waiting_for_sleep_norm_answer = State()  # Ожидание ответа на вопрос о сне
+
 
 DISLCAIMER_TEXT = (
     "Бот «FEFUS» не является медицинским помощником и не предоставляет "
@@ -97,7 +105,10 @@ async def cmd_start(message: Message) -> None:
 
 
 async def handle_pet_name(message: Message) -> None:
+    # Проверяем, существует ли пользователь
     user = users_repo.get_user(message.from_user.id)
+    
+    # Если пользователь уже существует, проверяем, не вводит ли он норму воды
     if user is not None:
         # Имя уже задано — передадим управление в общий обработчик
         # Но сначала проверяем, не вводит ли пользователь норму воды
@@ -105,10 +116,16 @@ async def handle_pet_name(message: Message) -> None:
             # Пользователь может вводить норму воды
             await handle_water_norm_setup(message)
             return
+        # Если пользователь существует и норма воды установлена, это не ввод имени
         await handle_unknown(message)
         return
 
+    # Пользователя нет в базе - это новый пользователь, вводящий имя выдры
     name = message.text.strip() if message.text else "Выдра"
+    
+    # Проверяем, что имя не пустое
+    if not name:
+        name = "Выдра"
 
     config = load_config()
 
@@ -290,6 +307,9 @@ async def cmd_revive(message: Message) -> None:
         pet.hunger = 50
         pet.thirst = 50
         pet.critical_state_since = None
+        # Сбрасываем флаг уведомления о смерти (на случай, если была мертва)
+        if "death_notification_sent" in user.last_reminders:
+            del user.last_reminders["death_notification_sent"]
         users_repo.save_user(user)
         await message.answer(
             "🦦 Выдра вернулась из отпуска и снова активна!\n"
@@ -310,6 +330,10 @@ async def cmd_revive(message: Message) -> None:
         pet.energy = 50
         pet.hunger = 50
         pet.thirst = 50
+        pet.critical_state_since = None
+        # Сбрасываем флаг уведомления о смерти
+        if "death_notification_sent" in user.last_reminders:
+            del user.last_reminders["death_notification_sent"]
         touch_pet(user)
         users_repo.save_user(user)
         await message.answer("Выдра воскресла благодаря твоей заботе 🦦❤️")
@@ -333,6 +357,10 @@ async def cmd_revive(message: Message) -> None:
             pet.energy = 60
             pet.hunger = 60
             pet.thirst = 60
+            pet.critical_state_since = None
+            # Сбрасываем флаг уведомления о смерти
+            if "death_notification_sent" in user.last_reminders:
+                del user.last_reminders["death_notification_sent"]
             touch_pet(user)
             users_repo.save_user(user)
             await message.answer(
@@ -391,11 +419,21 @@ async def handle_wake_pet(message: Message) -> None:
 
     pet = user.pet
     
+    # Проверяем, спит ли выдра
+    if pet.avatar_key != "sleep" and pet.last_sleep_start is None:
+        await message.answer(
+            "🦦 Выдра уже бодрствует! 😊\n\n"
+            "Она готова к действиям.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
+    
     # Проверяем, не на работе ли выдра
     if pet.at_work:
         await message.answer(
             "🦦 Выдра сейчас на работе и не может проснуться!\n\n"
-            "Сначала забери её с работы, а потом уже можно будить."
+            "Сначала забери её с работы, а потом уже можно будить.",
+            reply_markup=main_menu_keyboard()
         )
         return
 
@@ -442,11 +480,21 @@ async def handle_sleep_pet(message: Message) -> None:
 
     pet = user.pet
     
+    # Проверяем, не спит ли выдра уже
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра уже спит! 😴\n\n"
+            "Если хочешь её разбудить, нажми 'Разбудить питомца'.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
+    
     # Проверяем, не на работе ли выдра
     if pet.at_work:
         await message.answer(
             "🦦 Выдра сейчас на работе и не может лечь спать!\n\n"
-            "Сначала забери её с работы, а потом уже можно укладывать спать."
+            "Сначала забери её с работы, а потом уже можно укладывать спать.",
+            reply_markup=main_menu_keyboard()
         )
         return
 
@@ -468,8 +516,18 @@ async def handle_feed(message: Message) -> None:
     if not user:
         return
 
-    degrade_pet(user)
     pet = user.pet
+    
+    # Проверяем, не спит ли выдра
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра сейчас спит и не может есть!\n\n"
+            "Сначала разбуди её, а потом уже можно кормить.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
+
+    degrade_pet(user)
     pet.hunger = min(100, pet.hunger + 25)
     pet.happiness = min(100, pet.happiness + 5)
     touch_pet(user)
@@ -502,8 +560,18 @@ async def handle_water(message: Message) -> None:
     if not user:
         return
 
-    degrade_pet(user)
     pet = user.pet
+    
+    # Проверяем, не спит ли выдра
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра сейчас спит и не может пить!\n\n"
+            "Сначала разбуди её, а потом уже можно дать воды.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
+
+    degrade_pet(user)
     pet.thirst = min(100, pet.thirst + 25)
     pet.happiness = min(100, pet.happiness + 3)
     touch_pet(user)
@@ -591,11 +659,22 @@ async def handle_work_end(message: Message) -> None:
     if not user:
         return
 
-    degrade_pet(user)
     pet = user.pet
+    
+    # Проверяем, не спит ли выдра
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра сейчас спит и не может быть на работе!\n\n"
+            "Сначала разбуди её.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
+    
     if not pet.at_work:
         await message.answer("Выдра сейчас не на работе.", reply_markup=main_menu_keyboard())
         return
+
+    degrade_pet(user)
 
     from datetime import datetime, timezone, date
     from zoneinfo import ZoneInfo
@@ -773,6 +852,15 @@ async def handle_buy_hobby_menu(message: Message) -> None:
         return
     
     pet = user.pet
+    
+    # Проверяем, не спит ли выдра
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра сейчас спит и не может покупать хобби!\n\n"
+            "Сначала разбуди её, а потом уже можно покупать хобби.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
     hobbies = hobbies_repo.get_all()
     
     # Базовое хобби "Прогулка по парку" всегда бесплатно и не продается
@@ -921,6 +1009,15 @@ async def handle_hobby(message: Message) -> None:
 
     pet = user.pet
     
+    # Проверяем, не спит ли выдра
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра сейчас спит и не может заниматься хобби!\n\n"
+            "Сначала разбуди её, а потом уже можно заниматься хобби.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
+    
     # Проверяем, не на работе ли выдра
     if pet.at_work:
         await message.answer(
@@ -979,6 +1076,15 @@ async def handle_hobby_selection(message: Message) -> None:
         return
     
     pet = user.pet
+    
+    # Проверяем, не спит ли выдра
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра сейчас спит и не может заниматься хобби!\n\n"
+            "Сначала разбуди её, а потом уже можно заниматься хобби.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
     
     # Проверяем, не на работе ли выдра
     if pet.at_work:
@@ -1181,8 +1287,12 @@ async def handle_main_menu(message: Message) -> None:
     if text == "Действия с выдрой":
         await message.answer(
             "🦦 Действия с выдрой\n\n"
-            "Здесь ты можешь записывать свой сон и воду. "
-            "Выдра будет следить за твоим здоровьем вместе с тобой!",
+            "Здесь ты можешь взаимодействовать со своей выдрой:\n"
+            "• Укладывать и будить выдру\n"
+            "• Кормить и поить\n"
+            "• Отправлять на работу\n"
+            "• Заниматься хобби и тренировками\n\n"
+            "Выбери действие из меню ниже:",
             reply_markup=actions_menu_keyboard()
         )
     elif text == "Настройки":
@@ -1192,7 +1302,10 @@ async def handle_main_menu(message: Message) -> None:
             reply_markup=settings_menu_keyboard()
         )
     elif text == "Статистика":
-        await handle_weekly_stats(message)
+        # Создаем FSM context для передачи в handle_weekly_stats
+        from aiogram.fsm.context import FSMContext
+        state = FSMContext(storage=dp.storage, key=dp.storage.resolve_key(message.chat.id, message.from_user.id))
+        await handle_weekly_stats(message, state)
     elif text == "Совет дня":
         await handle_daily_advice(message)
     elif text == "👥 Друзья":
@@ -1213,15 +1326,7 @@ async def handle_actions_menu(message: Message) -> None:
     
     text = message.text
     
-    # Новые действия (для статистики пользователя)
-    if text == "Ложусь спать":
-        await handle_go_to_sleep(message)
-        return
-    elif text == "Проснулся":
-        await handle_wake_up(message)
-        return
-    
-    # Старые действия (геймификация с выдрой)
+    # Действия с выдрой (геймификация)
     elif text == "Разбудить питомца":
         await handle_wake_pet(message)
         return
@@ -1344,7 +1449,7 @@ async def handle_wake_up(message: Message) -> None:
     )
 
 
-async def handle_settings_menu(message: Message) -> None:
+async def handle_settings_menu(message: Message, state: FSMContext = None) -> None:
     """Меню настроек"""
     user = users_repo.get_user(message.from_user.id)
     if user is None:
@@ -1372,21 +1477,171 @@ async def handle_settings_menu(message: Message) -> None:
             "Например: /set_name Выдра",
             reply_markup=settings_menu_keyboard()
         )
+    elif text == "Настроить норму воды":
+        # Показываем меню настройки нормы воды
+        await message.answer(
+            "💧 Настройка нормы воды\n\n"
+            "Выбери один из вариантов или введи свою норму:",
+            reply_markup=water_norm_setup_keyboard()
+        )
+        return
+    elif text == "Настроить объем стакана":
+        # Используем FSM для ввода объема стакана
+        if state is None:
+            # Если state не передан, создаем его
+            from aiogram.fsm.context import FSMContext
+            state = FSMContext(storage=dp.storage, key=dp.storage.resolve_key(message.chat.id, message.from_user.id))
+        await state.set_state(WaterSettingsFSM.waiting_for_glass_volume)
+        await message.answer(
+            "💧 Настройка объема стакана\n\n"
+            "Напиши объем стакана в миллилитрах.\n"
+            "Например: 250 или 300\n\n"
+            "Или просто напиши число без единиц измерения (например, 250)",
+            reply_markup=settings_menu_keyboard()
+        )
+        return
 
 
-async def handle_weekly_stats(message: Message) -> None:
+async def handle_weekly_stats(message: Message, state: FSMContext = None) -> None:
     """Статистика за неделю"""
     user = users_repo.get_user(message.from_user.id)
     if user is None:
         await message.answer("Сначала нажми /start и создай свою выдру 🦦")
         return
     
-    stats_text = format_weekly_stats(user)
+    try:
+        stats_text = format_weekly_stats(user)
+        
+        # Вычисляем среднее количество часов сна за неделю
+        from datetime import date, timedelta
+        today = date.today()
+        week_dates = [today - timedelta(days=i) for i in range(7)]
+        
+        total_sleep_minutes = 0
+        days_with_sleep = 0
+        for day_date in week_dates:
+            day_str = day_date.isoformat()
+            if day_str in user.daily_stats:
+                stats = user.daily_stats[day_str]
+                if stats.sleep_minutes > 0:
+                    total_sleep_minutes += stats.sleep_minutes
+                    days_with_sleep += 1
+        
+        avg_sleep_hours = 0.0
+        if days_with_sleep > 0:
+            avg_sleep_hours = (total_sleep_minutes / days_with_sleep) / 60.0
+        
+        # Всегда отправляем статистику
+        if not stats_text or len(stats_text.strip()) == 0:
+            stats_text = "📊 Твоя статистика за последние 7 дней:\n\n📝 Данных за эту неделю пока нет.\nНачни записывать свой сон и воду через 'Действия с выдрой'!"
+        
+        await message.answer(
+            stats_text,
+            reply_markup=main_menu_keyboard()
+        )
+        
+        # Если норма сна не установлена и есть данные о сне, спрашиваем пользователя
+        if user.settings.sleep_norm_hours == 0.0 and avg_sleep_hours > 0:
+            if state is None:
+                from aiogram.fsm.context import FSMContext
+                state = FSMContext(storage=dp.storage, key=dp.storage.resolve_key(message.chat.id, message.from_user.id))
+            
+            # Сохраняем среднее значение в FSM для использования в обработчике
+            await state.update_data(avg_sleep_hours=avg_sleep_hours)
+            await state.set_state(SleepNormFSM.waiting_for_sleep_norm_answer)
+            
+            await message.answer(
+                f"💤 Вопрос о твоем сне:\n\n"
+                f"За последнюю неделю ты спал(а) в среднем {avg_sleep_hours:.1f} часов в день.\n\n"
+                f"Ты нормально высыпаешься?",
+                reply_markup=ReplyKeyboardMarkup(
+                    keyboard=[
+                        [KeyboardButton(text="Да"), KeyboardButton(text="Нет")],
+                    ],
+                    resize_keyboard=True,
+                )
+            )
+    except Exception as e:
+        # В случае ошибки отправляем сообщение об ошибке
+        await message.answer(
+            f"❌ Произошла ошибка при формировании статистики.\n\n"
+            f"Попробуй еще раз или обратись к администратору.",
+            reply_markup=main_menu_keyboard()
+        )
+        # Логируем ошибку (в продакшене можно использовать logger)
+        print(f"Error in handle_weekly_stats: {e}")
+
+
+async def handle_sleep_norm_answer(message: Message, state: FSMContext) -> None:
+    """Обработка ответа на вопрос о сне"""
+    user = users_repo.get_user(message.from_user.id)
+    if user is None:
+        await state.clear()
+        await message.answer("Сначала нажми /start и создай свою выдру 🦦")
+        return
     
-    await message.answer(
-        stats_text,
-        reply_markup=main_menu_keyboard()
-    )
+    text = message.text.strip()
+    data = await state.get_data()
+    avg_sleep_hours = data.get("avg_sleep_hours", 0.0)
+    
+    if text == "Да":
+        # Пользователь нормально высыпается - сохраняем среднее значение как норму
+        if avg_sleep_hours > 0:
+            user.settings.sleep_norm_hours = avg_sleep_hours
+            users_repo.save_user(user)
+            await state.clear()
+            await message.answer(
+                f"💤 Отлично! Установлена норма сна: {avg_sleep_hours:.1f} часов в день.\n\n"
+                f"Теперь бот будет отслеживать, соблюдаешь ли ты эту норму.",
+                reply_markup=main_menu_keyboard()
+            )
+        else:
+            await state.clear()
+            await message.answer(
+                "💤 Не удалось определить среднее количество часов сна.\n"
+                "Попробуй еще раз через неделю, когда накопится больше данных.",
+                reply_markup=main_menu_keyboard()
+            )
+    elif text == "Нет":
+        # Пользователь не высыпается - предлагаем решение
+        await state.clear()
+        
+        # Предложения в зависимости от среднего количества часов
+        suggestions = []
+        if avg_sleep_hours < 6:
+            suggestions.append("• Ложись спать на 1-2 часа раньше")
+            suggestions.append("• Создай регулярный режим сна")
+            suggestions.append("• Избегай экранов за час до сна")
+        elif avg_sleep_hours < 7:
+            suggestions.append("• Ложись спать на 30-60 минут раньше")
+            suggestions.append("• Установи фиксированное время отхода ко сну")
+            suggestions.append("• Создай расслабляющий ритуал перед сном")
+        else:
+            suggestions.append("• Старайся спать 7-9 часов в день")
+            suggestions.append("• Ложись и вставай в одно и то же время")
+            suggestions.append("• Создай комфортные условия для сна")
+        
+        suggestions_text = "\n".join(suggestions)
+        
+        await message.answer(
+            f"💤 Понятно, ты не высыпаешься.\n\n"
+            f"Сейчас ты спишь в среднем {avg_sleep_hours:.1f} часов в день.\n\n"
+            f"Рекомендации для улучшения сна:\n{suggestions_text}\n\n"
+            f"Когда начнешь лучше высыпаться, бот сможет установить новую норму сна "
+            f"при следующем просмотре статистики за неделю.",
+            reply_markup=main_menu_keyboard()
+        )
+    else:
+        # Неожиданный ответ
+        await message.answer(
+            "Пожалуйста, ответь 'Да' или 'Нет' на вопрос о сне.",
+            reply_markup=ReplyKeyboardMarkup(
+                keyboard=[
+                    [KeyboardButton(text="Да"), KeyboardButton(text="Нет")],
+                ],
+                resize_keyboard=True,
+            )
+        )
 
 
 async def handle_daily_advice(message: Message) -> None:
@@ -1492,10 +1747,24 @@ async def handle_water_norm_setup(message: Message) -> None:
         )
         return
     
-    # Попытка распарсить число как норму воды
+    # Попытка распарсить число как норму воды или объем стакана
     try:
+        # Сначала пробуем как float (норма воды в литрах)
         norm = float(text.replace(",", "."))
-        if 0.5 <= norm <= 10:  # Разумные пределы
+        
+        # Проверяем, может ли это быть объем стакана (целое число от 50 до 1000)
+        if norm.is_integer() and 50 <= int(norm) <= 1000:
+            # Это может быть объем стакана - проверяем контекст
+            # Если пользователь только что нажал "Настроить объем стакана", это объем стакана
+            # Иначе это может быть норма воды
+            volume = int(norm)
+            user.settings.glass_volume_ml = volume
+            users_repo.save_user(user)
+            await message.answer(
+                f"💧 Объем стакана установлен: {volume}мл.",
+                reply_markup=main_menu_keyboard()
+            )
+        elif 0.5 <= norm <= 10:  # Разумные пределы для нормы воды
             user.settings.water_norm_liters = norm
             user.settings.water_norm_set = True
             users_repo.save_user(user)
@@ -1505,14 +1774,15 @@ async def handle_water_norm_setup(message: Message) -> None:
             )
         else:
             await message.answer(
-                "💧 Пожалуйста, введи число от 0.5 до 10 литров.",
+                "💧 Пожалуйста, введи число от 0.5 до 10 литров для нормы воды,\n"
+                "или от 50 до 1000 для объема стакана.",
                 reply_markup=water_norm_setup_keyboard()
             )
     except ValueError:
-        # Если это не число, возможно это настройка объема стакана
+        # Если это не число, возможно это настройка объема стакана с "мл"
         if "мл" in text.lower() or "ml" in text.lower():
             try:
-                volume = int(text.replace("мл", "").replace("ml", "").strip())
+                volume = int(text.replace("мл", "").replace("ml", "").replace(" ", "").strip())
                 if 50 <= volume <= 1000:
                     user.settings.glass_volume_ml = volume
                     users_repo.save_user(user)
@@ -1643,8 +1913,18 @@ async def cmd_work_together_hobby(message: Message) -> None:
     if not user:
         return
     
-    degrade_pet(user)
     pet = user.pet
+    
+    # Проверяем, не спит ли выдра
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра сейчас спит и не может заниматься хобби!\n\n"
+            "Сначала разбуди её, а потом уже можно заниматься хобби.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
+    
+    degrade_pet(user)
     
     # Проверяем, не на работе ли выдра
     if pet.at_work:
@@ -1722,10 +2002,10 @@ async def cmd_my_friend_code(message: Message) -> None:
     
     await message.answer(
         f"🔗 Твой код дружбы:\n\n"
-        f"`{friend_code}`\n\n"
+        f"{friend_code}\n\n"
         f"Отправь этот код своему другу, "
         f"чтобы он мог добавить тебя в друзья!\n\n"
-        f"(Код скопирован, можешь его отправить 📋)",
+        f"Просто выдели код выше и скопируй его 📋",
         reply_markup=friends_menu_keyboard()
     )
 
@@ -1747,16 +2027,23 @@ async def cmd_add_friend_by_code(message: Message, state: FSMContext) -> None:
 
 async def handle_add_friend_code(message: Message, state: FSMContext) -> None:
     """Обработка введённого кода дружбы"""
-    user = await get_or_ask_start(message)
-    if not user:
-        return
-    
-    # Проверяем, что это не кнопка меню
-    menu_buttons = [
+    try:
+        # Проверяем, что это не команда
+        if message.text and message.text.startswith("/"):
+            await state.clear()
+            return
+        
+        user = await get_or_ask_start(message)
+        if not user:
+            await state.clear()
+            return
+        
+        # Проверяем, что это не кнопка меню
+        menu_buttons = [
         "Действия с выдрой", "👥 Друзья", "Настройки", "Статистика", "Совет дня", "Назад в главное меню",
         "Разбудить питомца", "Уложить спать", "Накормить (завтрак)", "Накормить (обед)", 
         "Накормить (ужин)", "Дать воды", "Отправить на работу", "Забрать с работы",
-        "Хобби / тренировка", "Купить хобби", "Ложусь спать", "Проснулся",
+        "Хобби / тренировка", "Купить хобби",
         "Просмотреть настройки", "Изменить часовой пояс", "Изменить имя выдры",
         "Настроить норму воды", "Настроить объем стакана", "Знаю свою норму",
         "Не знаю, предложи норму", "2 литра", "2.5 литра", "3 литра", "Другое",
@@ -1764,99 +2051,125 @@ async def handle_add_friend_code(message: Message, state: FSMContext) -> None:
         "📋 Мои друзья", "🤝 Совместное хобби", "💼 Совместная работа",
         "🚶 Совместная прогулка", "🍽️ Совместный обед", "💪 Совместная тренировка",
         "🏆 Спортивный вызов", "🌲 Приключение", "🎁 Подарок другу",
-        "🔗 Мой код дружбы", "➕ Добавить друга",
-    ]
-    
-    if message.text in menu_buttons:
-        await state.clear()
-        if message.text == "Назад в главное меню":
-            await message.answer("🏠 Главное меню", reply_markup=main_menu_keyboard())
-        elif message.text == "👥 Друзья":
-            await handle_friends_menu(message)
-        return
-    
-    code = message.text.strip()
-    
-    # Проверяем, что это цифры (ID)
-    if not code.isdigit():
-        await message.answer(
-            "❌ Неверный код! Код должен состоять из цифр.\n"
-            "Попроси друга отправить тебе его код ещё раз."
+            "🔗 Мой код дружбы", "➕ Добавить друга",
+        ]
+        
+        if message.text in menu_buttons:
+            await state.clear()
+            if message.text == "Назад в главное меню":
+                await message.answer("🏠 Главное меню", reply_markup=main_menu_keyboard())
+            elif message.text == "👥 Друзья":
+                await handle_friends_menu(message)
+            return
+        
+        if not message.text:
+            await message.answer("❌ Пожалуйста, введи код дружбы (только цифры).")
+            return
+        
+        code = message.text.strip()
+        
+        # Проверяем, что это цифры (ID)
+        if not code or not code.isdigit():
+            await message.answer(
+                "❌ Неверный код! Код должен состоять из цифр.\n"
+                "Попроси друга отправить тебе его код ещё раз.\n\n"
+                "Пример: 123456789"
+            )
+            return
+        
+        try:
+            friend_id = int(code)
+        except ValueError:
+            await message.answer("❌ Ошибка при обработке кода!")
+            return
+        
+        if friend_id == user.user_id:
+            await message.answer("❌ Нельзя добавить самого себя в друзья 😅", reply_markup=friends_menu_keyboard())
+            await state.clear()
+            return
+        
+        # Проверяем, существует ли друг
+        friend_user = users_repo.get_user(friend_id)
+        if not friend_user:
+            await message.answer(
+                f"❌ Пользователь с кодом {code} не найден в боте 🤔\n"
+                "Проверь код и попробуй снова.\n\n"
+                "Убедись, что друг уже зарегистрирован в боте (нажал /start).",
+                reply_markup=friends_menu_keyboard()
+            )
+            await state.clear()
+            return
+        
+        # Проверяем, нет ли уже дружбы
+        from bot.core.models import Friendship
+        from dataclasses import asdict
+        
+        # Ищем в обе стороны в друзьях
+        existing = False
+        if user.friendships and friend_id in user.friendships:
+            existing = True
+        
+        if existing:
+            await message.answer(
+                f"✅ Ты уже дружишь с выдрой {friend_user.pet.name}! 👥",
+                reply_markup=friends_menu_keyboard()
+            )
+            await state.clear()
+            return
+        
+        # Создаём дружбу в обе стороны
+        now = datetime.now(timezone.utc).isoformat()
+        
+        new_friendship = Friendship(
+            user_id_1=user.user_id,
+            user_id_2=friend_id,
+            friendship_level=1,
+            total_sessions_together=0,
+            first_met_date=now,
+            last_interaction=now,
         )
-        return
-    
-    try:
-        friend_id = int(code)
-    except ValueError:
-        await message.answer("❌ Ошибка при обработке кода!")
-        return
-    
-    if friend_id == user.user_id:
-        await message.answer("❌ Нельзя добавить самого себя в друзья 😅", reply_markup=friends_menu_keyboard())
-        await state.clear()
-        return
-    
-    # Проверяем, существует ли друг
-    friend_user = users_repo.get_user(friend_id)
-    if not friend_user:
+        
+        # Инициализируем friendships если его нет
+        if not user.friendships:
+            user.friendships = {}
+        
+        user.friendships[friend_id] = new_friendship
+        users_repo.save_user(user)
+        
+        # Также добавляем обратную ссылку у друга
+        if not friend_user.friendships:
+            friend_user.friendships = {}
+        
+        friend_user.friendships[user.user_id] = new_friendship
+        users_repo.save_user(friend_user)
+        
         await message.answer(
-            f"❌ Пользователь с кодом {code} не найден в боте 🤔\n"
-            "Проверь код и попробуй снова."
+            f"🎉 Поздравляем! Ты теперь друг выдры {friend_user.pet.name}! 👥\n\n"
+            f"⭐ Уровень дружбы: ⭐☆☆☆☆☆☆☆☆☆ (1/10)\n"
+            f"💕 Начните совместные активности для укрепления дружбы!\n\n"
+            f"Выбери активность ниже 👇",
+            reply_markup=friends_menu_keyboard()
         )
-        return
-    
-    # Проверяем, нет ли уже дружбы
-    from bot.core.models import Friendship
-    from dataclasses import asdict
-    
-    # Ищем в обе стороны в друзьях
-    existing = False
-    if hasattr(user, 'friendships') and friend_id in user.friendships:
-        existing = True
-    
-    if existing:
+        
+        await state.clear()
+    except Exception as e:
+        # Обработка ошибок
         await message.answer(
-            f"✅ Ты уже дружишь с выдрой {friend_user.pet.name}! 👥",
+            f"❌ Произошла ошибка при добавлении друга.\n"
+            f"Попробуй ещё раз или обратись к администратору.",
             reply_markup=friends_menu_keyboard()
         )
         await state.clear()
-        return
-    
-    # Создаём дружбу в обе стороны
-    now = datetime.now(timezone.utc).isoformat()
-    
-    new_friendship = Friendship(
-        user_id_1=user.user_id,
-        user_id_2=friend_id,
-        friendship_level=1,
-        total_sessions_together=0,
-        first_met_date=now,
-        last_interaction=now,
-    )
-    
-    # Инициализируем friendships если его нет
-    if not hasattr(user, 'friendships'):
-        user.friendships = {}
-    
-    user.friendships[friend_id] = new_friendship
-    users_repo.save_user(user)
-    
-    # Также добавляем обратную ссылку у друга
-    if not hasattr(friend_user, 'friendships'):
-        friend_user.friendships = {}
-    
-    friend_user.friendships[user.user_id] = new_friendship
-    users_repo.save_user(friend_user)
-    
-    await message.answer(
-        f"🎉 Поздравляем! Ты теперь друг выдры {friend_user.pet.name}! 👥\n\n"
-        f"⭐ Уровень дружбы: ⭐☆☆☆☆☆☆☆☆☆ (1/10)\n"
-        f"💕 Начните совместные активности для укрепления дружбы!\n\n"
-        f"Выбери активность ниже 👇",
-        reply_markup=friends_menu_keyboard()
-    )
-    
-    await state.clear()
+        print(f"Error in handle_add_friend_code: {e}")  # Для отладки
+    except Exception as e:
+        # Обработка ошибок
+        await message.answer(
+            f"❌ Произошла ошибка при добавлении друга.\n"
+            f"Попробуй ещё раз или обратись к администратору.",
+            reply_markup=friends_menu_keyboard()
+        )
+        await state.clear()
+        print(f"Error in handle_add_friend_code: {e}")  # Для отладки
 
 
 async def cmd_add_friend(message: Message) -> None:
@@ -2011,8 +2324,18 @@ async def cmd_coop_walk(message: Message) -> None:
     if not user:
         return
     
-    degrade_pet(user)
     pet = user.pet
+    
+    # Проверяем, не спит ли выдра
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра сейчас спит и не может гулять!\n\n"
+            "Сначала разбуди её, а потом уже можно идти на прогулку.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
+    
+    degrade_pet(user)
     
     # Одиночная прогулка (рассчитываем как совместную с 1 участником)
     base_happiness = 15
@@ -2046,8 +2369,18 @@ async def cmd_coop_meal(message: Message) -> None:
     if not user:
         return
     
-    degrade_pet(user)
     pet = user.pet
+    
+    # Проверяем, не спит ли выдра
+    if pet.avatar_key == "sleep" or pet.last_sleep_start is not None:
+        await message.answer(
+            "🦦 Выдра сейчас спит и не может обедать!\n\n"
+            "Сначала разбуди её, а потом уже можно обедать.",
+            reply_markup=main_menu_keyboard()
+        )
+        return
+    
+    degrade_pet(user)
     
     base_happiness = 20
     base_money = 0
@@ -2115,6 +2448,60 @@ async def main() -> None:
     dp.message.register(cmd_my_stats, Command("my_stats"))
 
     dp.message.register(cmd_start, CommandStart())
+    
+    # Обработчик имени выдры — только если питомец ещё не создан и это не команда
+    # Также обрабатывает ввод нормы воды, если она не установлена
+    # ВАЖНО: Регистрируем ПЕРЕД другими обработчиками текста, чтобы он обрабатывался первым
+    # Исключаем FSM состояние для добавления друга
+    dp.message.register(
+        handle_pet_name,
+        ~StateFilter(FriendshipFSM.waiting_for_friend_code) &
+        F.text & ~F.text.startswith("/") &
+        ~F.text.in_([
+            "Разбудить питомца",
+            "Уложить спать",
+            "Накормить (завтрак)",
+            "Накормить (обед)",
+            "Накормить (ужин)",
+            "Дать воды",
+            "Отправить на работу",
+            "Забрать с работы",
+            "Хобби / тренировка",
+            "Купить хобби",
+            "Назад в меню",
+            "Действия с выдрой",
+            "👥 Друзья",
+            "Настройки",
+            "Статистика",
+            "Совет дня",
+            "Назад в главное меню",
+            "Просмотреть настройки",
+            "Изменить часовой пояс",
+            "Изменить имя выдры",
+            "Настроить норму воды",
+            "Настроить объем стакана",
+            "Знаю свою норму",
+            "Не знаю, предложи норму",
+            "2 литра",
+            "2.5 литра",
+            "3 литра",
+            "Другое",
+            "Назад в настройки",
+            "Да",
+            "Нет",
+            "📋 Мои друзья",
+            "🤝 Совместное хобби",
+            "💼 Совместная работа",
+            "🚶 Совместная прогулка",
+            "🍽️ Совместный обед",
+            "💪 Совместная тренировка",
+            "🏆 Спортивный вызов",
+            "🌲 Приключение",
+            "🎁 Подарок другу",
+            "🔗 Мой код дружбы",
+            "➕ Добавить друга",
+        ]) & ~F.text.contains("💰") & ~F.text.startswith("🎨 ") & ~F.text.startswith("🆓"),
+    )
 
     # Новое главное меню
     dp.message.register(
@@ -2132,10 +2519,7 @@ async def main() -> None:
     dp.message.register(
         handle_actions_menu,
         F.text.in_([
-            # Новые действия (для статистики пользователя)
-            "Ложусь спать",
-            "Проснулся",
-            # Старые действия (геймификация с выдрой)
+            # Действия с выдрой (геймификация)
             "Разбудить питомца",
             "Уложить спать",
             "Накормить (завтрак)",
@@ -2150,8 +2534,12 @@ async def main() -> None:
     )
     
     # Меню настроек
+    # Создаем обертку для передачи state
+    async def handle_settings_menu_wrapper(message: Message, state: FSMContext = None) -> None:
+        await handle_settings_menu(message, state)
+    
     dp.message.register(
-        handle_settings_menu,
+        handle_settings_menu_wrapper,
         F.text.in_([
             "Просмотреть настройки",
             "Изменить часовой пояс",
@@ -2176,10 +2564,72 @@ async def main() -> None:
         ])
     )
     
+    # Обработчик ввода объема стакана (FSM)
+    async def handle_glass_volume_input(message: Message, state: FSMContext) -> None:
+        """Обработка ввода объема стакана"""
+        user = users_repo.get_user(message.from_user.id)
+        if user is None:
+            await state.clear()
+            await message.answer("Сначала нажми /start и создай свою выдру 🦦")
+            return
+        
+        text = message.text.strip()
+        
+        # Проверяем, не кнопка ли это меню
+        if text in ["Назад в главное меню", "Настройки", "Назад в настройки"]:
+            await state.clear()
+            if text == "Настройки" or text == "Назад в настройки":
+                await message.answer("⚙️ Настройки", reply_markup=settings_menu_keyboard())
+            else:
+                await message.answer("🏠 Главное меню", reply_markup=main_menu_keyboard())
+            return
+        
+        # Пробуем распарсить как число
+        try:
+            # Убираем "мл" или "ml" если есть
+            clean_text = text.replace("мл", "").replace("ml", "").replace(" ", "").strip()
+            volume = int(clean_text)
+            
+            if 50 <= volume <= 1000:
+                user.settings.glass_volume_ml = volume
+                users_repo.save_user(user)
+                await state.clear()
+                await message.answer(
+                    f"💧 Объем стакана установлен: {volume}мл.",
+                    reply_markup=main_menu_keyboard()
+                )
+            else:
+                await message.answer(
+                    "💧 Пожалуйста, введи объем от 50 до 1000 мл.",
+                    reply_markup=settings_menu_keyboard()
+                )
+        except ValueError:
+            await message.answer(
+                "💧 Не понял. Введи число от 50 до 1000 (например, 250).",
+                reply_markup=settings_menu_keyboard()
+            )
+    
+    dp.message.register(
+        handle_glass_volume_input,
+        StateFilter(WaterSettingsFSM.waiting_for_glass_volume)
+    )
+    
     # Обработка ответов на еженедельный вопрос о соблюдении советов
     dp.message.register(
         handle_weekly_advice_answer,
         F.text.in_(["Да", "Нет"])
+    )
+    
+    # Обработчик ответа на вопрос о сне (FSM) - регистрируем ПЕРЕД общим обработчиком "Да"/"Нет"
+    dp.message.register(
+        handle_sleep_norm_answer,
+        StateFilter(SleepNormFSM.waiting_for_sleep_norm_answer)
+    )
+    
+    # Обработчик ввода объема стакана (FSM) - регистрируем ПЕРЕД общим обработчиком текста
+    dp.message.register(
+        handle_glass_volume_input,
+        StateFilter(WaterSettingsFSM.waiting_for_glass_volume)
     )
     
     # Обработчик меню друзей
@@ -2201,62 +2651,63 @@ async def main() -> None:
     )
 
     # Обработчик ввода кода дружбы (обработка текста после нажатия ➕)
+    # ВАЖНО: Регистрируем с фильтром, чтобы не перехватывать команды
     dp.message.register(
         handle_add_friend_code,
-        StateFilter(FriendshipFSM.waiting_for_friend_code)
+        StateFilter(FriendshipFSM.waiting_for_friend_code) & 
+        ~F.text.startswith("/")  # Не обрабатываем команды
     )
 
     # Обработчик имени выдры — только если питомец ещё не создан и это не команда
     # Также обрабатывает ввод нормы воды, если она не установлена
+    # ВАЖНО: Регистрируем ПЕРЕД общим обработчиком текста, чтобы он обрабатывался первым
     dp.message.register(
         handle_pet_name,
         F.text & ~F.text.startswith("/") &
-        ~F.text.in_(
-            [
-                "Разбудить питомца",
-                "Уложить спать",
-                "Накормить (завтрак)",
-                "Накормить (обед)",
-                "Накормить (ужин)",
-                "Дать воды",
-                "Отправить на работу",
-                "Забрать с работы",
-                "Хобби / тренировка",
-                "Купить хобби",
-                "Назад в меню",
-                "Действия с выдрой",
-                "👥 Друзья",
-                "Настройки",
-                "Статистика",
-                "Совет дня",
-                "Назад в главное меню",
-                "Ложусь спать",
-                "Проснулся",
-                "Просмотреть настройки",
-                "Изменить часовой пояс",
-                "Изменить имя выдры",
-                "Настроить норму воды",
-                "Настроить объем стакана",
-                "Знаю свою норму",
-                "Не знаю, предложи норму",
-                "2 литра",
-                "2.5 литра",
-                "3 литра",
-                "Другое",
-                "Назад в настройки",
-                "Да",
-                "Нет",
-                "📋 Мои друзья",
-                "🤝 Совместное хобби",
-                "💼 Совместная работа",
-                "🚶 Совместная прогулка",
-                "🍽️ Совместный обед",
-                "💪 Совместная тренировка",
-                "🏆 Спортивный вызов",
-                "🌲 Приключение",
-                "🎁 Подарок другу",
-            ]
-        ) & ~F.text.contains("💰") & ~F.text.startswith("🎨 ") & ~F.text.startswith("🆓"),
+        ~F.text.in_([
+            "Разбудить питомца",
+            "Уложить спать",
+            "Накормить (завтрак)",
+            "Накормить (обед)",
+            "Накормить (ужин)",
+            "Дать воды",
+            "Отправить на работу",
+            "Забрать с работы",
+            "Хобби / тренировка",
+            "Купить хобби",
+            "Назад в меню",
+            "Действия с выдрой",
+            "👥 Друзья",
+            "Настройки",
+            "Статистика",
+            "Совет дня",
+            "Назад в главное меню",
+            "Просмотреть настройки",
+            "Изменить часовой пояс",
+            "Изменить имя выдры",
+            "Настроить норму воды",
+            "Настроить объем стакана",
+            "Знаю свою норму",
+            "Не знаю, предложи норму",
+            "2 литра",
+            "2.5 литра",
+            "3 литра",
+            "Другое",
+            "Назад в настройки",
+            "Да",
+            "Нет",
+            "📋 Мои друзья",
+            "🤝 Совместное хобби",
+            "💼 Совместная работа",
+            "🚶 Совместная прогулка",
+            "🍽️ Совместный обед",
+            "💪 Совместная тренировка",
+            "🏆 Спортивный вызов",
+            "🌲 Приключение",
+            "🎁 Подарок другу",
+            "🔗 Мой код дружбы",
+            "➕ Добавить друга",
+        ]) & ~F.text.contains("💰") & ~F.text.startswith("🎨 ") & ~F.text.startswith("🆓"),
     )
 
     # Старые обработчики теперь обрабатываются через handle_actions_menu
@@ -2275,7 +2726,7 @@ async def main() -> None:
             "Действия с выдрой", "👥 Друзья", "Настройки", "Статистика", "Совет дня", "Назад в главное меню",
             "Разбудить питомца", "Уложить спать", "Накормить (завтрак)", "Накормить (обед)", 
             "Накормить (ужин)", "Дать воды", "Отправить на работу", "Забрать с работы",
-            "Хобби / тренировка", "Купить хобби", "Ложусь спать", "Проснулся",
+            "Хобби / тренировка", "Купить хобби",
             "Просмотреть настройки", "Изменить часовой пояс", "Изменить имя выдры",
             "Настроить норму воды", "Настроить объем стакана", "Знаю свою норму",
             "Не знаю, предложи норму", "2 литра", "2.5 литра", "3 литра", "Другое",
@@ -2292,6 +2743,10 @@ async def main() -> None:
             return
         
         user = users_repo.get_user(message.from_user.id)
+        
+        # Если пользователя нет в базе, это может быть ввод имени выдры - пропускаем
+        if user is None:
+            return
         if user and user.last_main_menu_return:
             from datetime import datetime, timezone, timedelta
             try:
@@ -2320,7 +2775,7 @@ async def main() -> None:
             "Действия с выдрой", "Настройки", "Статистика", "Совет дня", "Назад в главное меню",
             "Разбудить питомца", "Уложить спать", "Накормить (завтрак)", "Накормить (обед)", 
             "Накормить (ужин)", "Дать воды", "Отправить на работу", "Забрать с работы",
-            "Хобби / тренировка", "Купить хобби", "Ложусь спать", "Проснулся",
+            "Хобби / тренировка", "Купить хобби",
             "Просмотреть настройки", "Изменить часовой пояс", "Изменить имя выдры",
             "Настроить норму воды", "Настроить объем стакана", "Знаю свою норму",
             "Не знаю, предложи норму", "2 литра", "2.5 литра", "3 литра", "Другое",
